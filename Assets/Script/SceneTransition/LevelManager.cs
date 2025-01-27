@@ -6,7 +6,6 @@ using System.Linq;
 
 public class LevelManager : MonoBehaviour
 {
-    //Singleton so that there only exists one single instance of this class and is accessible from anywhere
     public static LevelManager Instance;
 
     public Slider progressBar;
@@ -16,15 +15,19 @@ public class LevelManager : MonoBehaviour
 
     //array of scene transitions
     private SceneTransition[] transitions;
+
+
     private void Awake()
     {
-        //Si c'est libre on prend et on fait en sorte que ce soit pas supprier quand on change de scene
+        //On transforme l'instance en Singleton pour qu'il n'existe qu'une instance et qu'elle soit accessible de partout :
+        
+        // Si l'instance est vide, on affecte la référence et on empêche la suppression de l'objet entre les scènes
         if (Instance == null)
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
         }
-        //autrement si ce n'est pas null, c'est que l'instance etait déjà en place et que du cup on peut le supprimer
+        // Si l'instance existe déjà, on détruit l'objet dupliqué
         else
         {
             Destroy(gameObject);
@@ -33,9 +36,11 @@ public class LevelManager : MonoBehaviour
 
     private void Start()
     {
-        //get all the transitions
+        // On récupère toutes les transitions disponibles dans le conteneur de transitions (on)
         transitions = transitionsContainer.GetComponentsInChildren<SceneTransition>();
     }
+
+    // Méthode publique pour charger une scène avec un nom de scène et un nom de transition spécifique
     public void LoadScene(string sceneName, string transitionName)
     {
         StartCoroutine(LoadSceneAsync(sceneName, transitionName));
@@ -46,6 +51,7 @@ public class LevelManager : MonoBehaviour
         //cherche la premiere transition avec le nom de transition demandé
         SceneTransition transition = transitions.First(t => t.name == transitionName);
 
+        // Lance le chargement asynchrone de la scène
         AsyncOperation scene = SceneManager.LoadSceneAsync(sceneName);
         scene.allowSceneActivation = false;
 
@@ -53,18 +59,23 @@ public class LevelManager : MonoBehaviour
 
         progressBar.gameObject.SetActive(true);
 
+        // Mise à jour continue de la barre de progression pendant le chargement de la scène
         do
         {
             progressBar.value = scene.progress;
             yield return null;
         } while (scene.progress < 0.9f);
 
+        // Petite pause pour laisser le temps à l'animation de transition avant d'activer la scène
         yield return new WaitForSeconds(1f);
 
+        // Permet d'activer la scène une fois le chargement terminé
         scene.allowSceneActivation = true;
 
+        // Cache la barre de progression une fois le chargement terminé
         progressBar.gameObject.SetActive(false);
 
+        // Anime la sortie de la transition après que la scène soit activée
         yield return transition.AnimateTransitionOut();
     }
 }

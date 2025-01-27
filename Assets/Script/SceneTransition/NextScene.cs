@@ -13,7 +13,7 @@ public class NextScene : MonoBehaviour
         {
             AudioSource.PlayClipAtPoint(endLevelSound, transform.position);
 
-            // Appelle le LevelManager pour charger la scène avec transition
+            // Appelle le LevelManager pour charger la scène avec transition choisie
             LevelManager.Instance.LoadScene(sceneToLoad, "CrossFade");
             Debug.Log("Nouvelle scene 1");
         }
